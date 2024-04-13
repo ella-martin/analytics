@@ -1,0 +1,98 @@
+---
+title: "Exploring the Interplay between Poverty and Violence "
+subtitle: "Percentage of women subjected to violence by an intimate partner"
+author: "Ella Martin"
+Date: "2024-04-08"
+format:
+  html: 
+    theme: sandstone
+    backgroundcolor: lightblue
+    toc: true
+execute: 
+  echo: false
+  warning: false
+  message: false
+  
+
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+# libraries
+library(tidyverse)
+library(plotly)
+
+# data
+indiator_1 <- read_csv("indiator 1.csv")
+indicator2 <- read_csv("indicator2.csv")
+unicef_metadata <- read_csv("unicef_metadata.csv")
+
+# transformations
+data_join<- full_join(indiator_1, unicef_metadata)
+colnames(unicef_metadata)[8] <- 'GDP_Per_Capita'
+colnames(data_join)[18] <- 'GDP_Per_Capita'
+colnames(data_join)[21] <- 'Life_Exp'
+colnames(data_join)[17] <- 'pop'
+colnames(data_join)[7] <- 'Women_Subjected_to_Violence'
+colnames(indiator_1)[7] <- 'Women_Subjected_to_Violence'
+```
+
+Violence against women is a pervasive and complex issue that transcends geographical boundaries, affecting individuals of all ages, backgrounds, and socio-economic statuses. Beyond its immediate and devastating impact on survivors, violence against women has far-reaching implications for societies as a whole, intersecting with economic development, public health, and human rights. Through the analysis provided by Unicef, this report aims to explore the interplay between violence against women, GDP growth, and life expectancy, with a focus on third world countries, and to provide recommendations for comprehensive interventions that promote sustainable development and gender equality.
+
+## Snapshot of Violence against Women in the world
+```{r}
+#| fig-cap: "This detailed map provides insight into the percentage of women who are subjected to violence by an intimate partner across the world. Maps like this can be incredibly illuminating, showing how societal factors like poverty intersect with issues like intimate partner violence. It's a stark reminder of the complex challenges many individuals face globally, and it can help guide efforts to address these issues by pinpointing areas where intervention and support are most needed."
+
+map_world<- map_data("world")
+map_data_join <- full_join(indiator_1, map_world, by=c("country"="region"))
+
+ggplot(map_data_join) +
+  aes(x = long, y = lat, group = group, fill = Women_Subjected_to_Violence ) +
+  scale_fill_gradient(low = "pink", high = "red") +
+  geom_polygon()
+  
+
+```
+## Exploring the affect of Violence against Women on GDP growth
+
+```{r}
+#| fig-cap: "Violence against women can significantly impact a country's GDP by reducing women's participation in the workforce due to physical or psychological harm. This can lead to decreased productivity and economic output. Additionally, violence can increase healthcare costs, hinder educational attainment, and deter investment and economic development. Furthermore, increased social welfare spending may strain public budgets and limit investment in essential areas like infrastructure or education. Addressing violence against women requires a comprehensive approach that addresses root causes, including socio-economic factors like poverty and inequality."
+
+data_join %>%
+  group_by(Women_Subjected_to_Violence, GDP_Per_Capita) %>%
+ ggplot() +
+  aes(Women_Subjected_to_Violence, GDP_Per_Capita,  fill = Women_Subjected_to_Violence) +
+  scale_fill_gradient(low="pink",high='red') +
+  scale_y_continuous(limits = c(0,100000),
+                     labels = scales::unit_format(unit = "k", scale = 0.001))+
+  geom_col(width = 0.5) 
+
+```
+## Examining GDP growth and Life expectancy Since the 1960s
+
+```{r}
+#| fig-cap: "Since the 1960s, GDP and life expectancy in third world countries have grown due to advancements in healthcare, technology, education, economic development, international aid, and policy interventions. Healthcare infrastructure, access to medical services, and disease prevention measures have led to lower mortality rates and increased life expectancy. Technological innovations have improved healthcare delivery, access to clean water and sanitation, and agricultural productivity. Education has empowered individuals to make healthier choices and seek medical care, leading to better health outcomes. However, challenges remain in achieving equitable access to healthcare, reducing health disparities, and addressing emerging health threats. Continued investment in healthcare infrastructure, human capital development, and sustainable development strategies is crucial for further improvement."
+
+ggplot(data_join) +
+  aes(GDP_Per_Capita, Life_Exp , color = year) +
+  geom_point(alpha = 0.2) +
+  scale_x_continuous(limits = c(0,10000)) +
+  scale_color_gradient(low = "pink", high = "red") +
+  labs(title = "Evolution of Life Expectancy and GDP from 1960 - 2020")
+
+   
+
+```
+
+```{r}
+data_join %>%
+  ggplot() +
+  aes(year , GDP_Per_Capita  , group = country, color = "red") +
+  geom_line() +
+  labs(title = "GDP Growth since 1960 by Country")
+```
+
+## Conclusion and Recomendations
+Violence against women is linked to GDP and life expectancy, highlighting the complex dynamics within societies worldwide. Violence not only causes direct harm but also perpetuates cycles of inequality and hinders development. However, the growth in GDP and life expectancy in third world countries since the 1960s reflects progress driven by advancements in healthcare, technology, education, and economic development. To sustain and amplify progress, comprehensive interventions, continued investment in healthcare and education, economic empowerment, international cooperation, and data collection and research are needed. Governments and organizations should adopt holistic approaches to tackle root causes of violence, including poverty, inequality, and cultural norms. Investment in healthcare infrastructure, education, and public health programs can empower individuals and communities to break the cycle of violence and improve overall well-being. Collaboration among governments, civil society organizations, and international partners is vital for promoting gender equality and fostering inclusive growth.
